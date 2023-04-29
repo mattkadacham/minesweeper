@@ -7,7 +7,6 @@ import {
   useMemo,
   useRef,
   useState,
-  MouseEvent,
 } from "react";
 import * as ms from "./minesweeper";
 
@@ -84,7 +83,7 @@ export function Cell({
 
   const handleClick = () => {
     if (game.checkGameState() !== 'InProgress') {
-        return;
+      return;
     }
     game.uncover(cell.coords);
     onClick && onClick(cell);
@@ -97,8 +96,8 @@ export function Cell({
   const debugStyle: CSSProperties =
     debug && cell.hasMine
       ? {
-          backgroundColor: "red",
-        }
+        backgroundColor: "red",
+      }
       : {};
 
   return (
@@ -148,11 +147,11 @@ export function RestartButton({ onClick }: { onClick: () => void }) {
 }
 
 export function NumMines() {
-    const { boardState } = useContext(MinesweeperContext);
+  const { boardState } = useContext(MinesweeperContext);
 
-    return (
-        <span className="num-mines">{boardState.numMines}</span>
-    )
+  return (
+    <span className="num-mines">{boardState.numMines}</span>
+  )
 }
 
 export function GameState({ state }: { state: ms.GameState }) {
