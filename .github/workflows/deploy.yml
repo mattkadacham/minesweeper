@@ -26,6 +26,8 @@ jobs:
         run: |
           npm ci
           npm run build # replace this with the command you use to build your app, if different
+        env:
+          BASE_URL: https://mattkadacham.github.io/minesweeper/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -33,5 +35,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist # replace 'dist' with the directory where your built app is located, if different
           commit_message: 'Deploy to GitHub Pages'
-        env:
-          BASE_URL: https://mattkadacham.github.io/minesweeper/
