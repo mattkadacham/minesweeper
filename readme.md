@@ -1,4 +1,4 @@
-![example workflow](https://github.com/mattkadacham/minesweeper/actions/workflows/deploy.yml/badge.svg)
+![main](https://github.com/mattkadacham/minesweeper/actions/workflows/deploy.yml/badge.svg)
 
 # Minesweeper
 
