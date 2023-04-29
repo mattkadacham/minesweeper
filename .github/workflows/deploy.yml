@@ -34,4 +34,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist # replace 'dist' with the directory where your built app is located, if different
-          commit_message: 'Deploy to GitHub Pages'
+          commit_message: 'main'
