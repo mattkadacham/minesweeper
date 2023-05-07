@@ -29,9 +29,15 @@ export const useBoardState = (game: ms.Minesweeper): ms.BoardState => {
   const id = useRef(`{Math.floor(Math.random() * 10000)}`);
 
   useEffect(() => {
+    game.board.clearSubscriptions();
+    setBoardState(game.board.getState());
+
     const unsubscribe = game.board.subscribe({
       name: id.current,
-      update: setBoardState,
+      update: (state) => {
+        console.log('update', state);
+        setBoardState(state);
+      }
     });
 
     return unsubscribe;
@@ -85,14 +91,8 @@ export function Cell({
     if (game.checkGameState() !== 'InProgress') {
       return;
     }
-    game.uncover(cell.coords);
     onClick && onClick(cell);
   };
-
-  const handleDoubleClick = () => {
-    game.board.toggleCellMark(cell.coords);
-  }
-
   const debugStyle: CSSProperties =
     debug && cell.hasMine
       ? {
@@ -104,10 +104,10 @@ export function Cell({
     <div
       className={"game-cell" + (cell.uncovered ? " uncovered" : "")}
       onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
       style={{ cursor: cell.uncovered ? "default" : "pointer", ...debugStyle }}
     >
       {cell.uncovered && cell.hasMine && <>💣</>}
+      {!cell.uncovered && cell.flagged && <>🚩</>}
       {cell.uncovered && !cell.hasMine && (
         <AdjacentMineText num={cell.adjacentMines} />
       )}
@@ -147,10 +147,10 @@ export function RestartButton({ onClick }: { onClick: () => void }) {
 }
 
 export function NumMines() {
-  const { boardState } = useContext(MinesweeperContext);
+  const { boardState, game } = useContext(MinesweeperContext);
 
   return (
-    <span className="num-mines">{boardState.numMines}</span>
+    <span className="num-mines">{boardState.numMines - game.board.stats().flagged}</span>
   )
 }
 
@@ -158,9 +158,69 @@ export function GameState({ state }: { state: ms.GameState }) {
   switch (state) {
     case "Win":
       return <>😄</>;
+
     case "Lose":
       return <>😓</>;
     case "InProgress":
       return <>🙂</>;
   }
+}
+
+export function ClickMode({ mode, onClick }: { mode: "Uncover" | "Mark", onClick: () => void }) {
+  return <button onClick={onClick} title={`Click mode - ${mode}`}>{mode === "Uncover" ? "⛏️" : "🚩"}</button>
+}
+
+
+export function GameConfig({ settings, onChange, onNewGameClick }: { settings: ms.GameSettings, onChange: (settings: ms.GameSettings) => void, onNewGameClick: () => void }) {
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    onChange({ ...settings, [name]: value });
+  }
+
+  const handleDifficultySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    if (value === "Custom") {
+      return onChange({ ...settings, difficulty: value });
+    }
+    const preset = ms.Presets[value as keyof typeof ms.Presets];
+    onChange({ ...preset });
+  }
+
+  if (!settings) return <></>;
+
+  return (
+    <div className="game-settings">
+      <div className="game-settings-row">
+        <div className="game-settings-label">Width</div>
+        <div className="game-settings-value">
+          <input name="width" type="number" value={settings.width} onChange={handleChange} />
+        </div>
+      </div>
+      <div className="game-settings-row">
+        <div className="game-settings-label">Height</div>
+        <div className="game-settings-value">
+          <input name="height" type="number" value={settings.height} onChange={handleChange} />
+        </div>
+      </div>
+      <div className="game-settings-row">
+        <div className="game-settings-label">Mines</div>
+        <div className="game-settings-value">
+          <input name="mineCount" type="number" value={settings.mineCount} onChange={handleChange} />
+        </div>
+      </div>
+      <div className="game-settings-row">
+        <div className="game-settings-label">Difficulty</div>
+        <div className="game-settings-value">
+          <select name="difficulty" onChange={handleDifficultySelect} value={settings.difficulty}>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+      </div>
+      <button onClick={onNewGameClick}>New Game</button>
+    </div>
+  )
 }

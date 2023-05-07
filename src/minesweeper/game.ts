@@ -1,6 +1,16 @@
-import { Board, GameSettings, GridCoords } from "./board";
+import { Board, GridCoords } from "./board";
 
 export type GameState = "Win" | "Lose" | "InProgress";
+
+export type Difficulty = "Easy" | "Medium" | "Hard" | "Custom";
+
+export type GameSettings = {
+  height: number;
+  width: number;
+  mineCount?: number;
+  mineSpawnChance?: number;
+  difficulty: Difficulty;
+};
 
 export class Minesweeper {
   board: Board;
@@ -18,16 +28,13 @@ export class Minesweeper {
   }
 
   checkGameState(): GameState {
-    const { numMines, uncovered, mineUncovered } = this.board.stats();
-    console.log("checkGameState", {
-      board: this.board,
-      mineUncovered,
-      uncovered,
-      numMines,
-    });
+    const { numMines, uncovered, mineUncovered, flagged, flaggedCorrect } = this.board.stats();
     if (mineUncovered) return "Lose";
     const coveredCells = this.board.length - uncovered;
     if (numMines === coveredCells) {
+      return "Win";
+    }
+    if (flagged === this.settings.mineCount && flaggedCorrect === this.settings.mineCount) {
       return "Win";
     }
     return "InProgress";
@@ -86,6 +93,16 @@ export class Minesweeper {
         minesPlaced++;
       }
     }
+  }
+
+  toggleCellMark([i, j]: GridCoords) {
+    const cell = this.board.get([i, j]);
+    if (!cell || cell.uncovered) {
+      return;
+    }
+
+    cell.flagged = !cell.flagged;
+    this.board.emit();
   }
 
   generateMinesByProbability(spawnChance: number): void {

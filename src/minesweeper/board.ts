@@ -8,12 +8,7 @@ export type Cell = {
 
 export type GridCoords = [number, number];
 
-export type GameSettings = {
-  height: number;
-  width: number;
-  mineCount?: number;
-  mineSpawnChance?: number;
-};
+
 
 type Subscribable = {
   subscribe: (s: Subscription) => void;
@@ -74,16 +69,6 @@ export class Board implements Iterable<Cell>, Subscribable {
     return this.grid.filter((i) => i.hasMine).length;
   }
 
-  toggleCellMark([i, j]: GridCoords) {
-    const cell = this.get([i, j]);
-    if (!cell || cell.uncovered) {
-      return;
-    }
-
-    cell.flagged = !cell.flagged;
-    this.emit();
-  }
-
   getState(): BoardState {
     return {
       grid: [...this.grid],
@@ -103,6 +88,10 @@ export class Board implements Iterable<Cell>, Subscribable {
     return () => {
       this.subscribers = this.subscribers.filter((i) => i.name !== s.name);
     };
+  }
+
+  clearSubscriptions() {
+    this.subscribers = [];
   }
 
   emit() {
@@ -137,11 +126,17 @@ export class Board implements Iterable<Cell>, Subscribable {
     let numMines = 0;
     let uncovered = 0;
     let mineUncovered = false;
+    let flagged = 0;
+    let flaggedCorrect = 0;
     for (const cell of this.grid) {
       numMines += cell.hasMine ? 1 : 0;
       uncovered += cell.uncovered ? 1 : 0;
       if (cell.uncovered && cell.hasMine) {
         mineUncovered = true;
+      }
+      if (!cell.uncovered && cell.flagged) {
+        flagged++;
+        flaggedCorrect += cell.hasMine ? 1 : 0;
       }
     }
 
@@ -149,6 +144,8 @@ export class Board implements Iterable<Cell>, Subscribable {
       numMines,
       uncovered,
       mineUncovered,
+      flagged,
+      flaggedCorrect,
     };
   }
 
